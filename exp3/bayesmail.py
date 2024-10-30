@@ -27,10 +27,10 @@ def trainNB0(trainMatrix, trainCategory):
     numTrainDocs = len(trainMatrix)
     numWords = len(trainMatrix[0])
     pAbusive = sum(trainCategory) / float(numTrainDocs)
-    p0Num = np.zeros(numWords)
-    p1Num = np.zeros(numWords)
-    p0Denom = 0.0
-    p1Denom = 0.0
+    p0Num = np.ones(numWords)
+    p1Num = np.ones(numWords)
+    p0Denom = 2.0
+    p1Denom = 2.0
     for i in range(numTrainDocs):
         if trainCategory[i]==1:
             p1Num+=trainMatrix[i]
@@ -38,8 +38,8 @@ def trainNB0(trainMatrix, trainCategory):
         else:
             p0Num+=trainMatrix[i]
             p0Denom+=sum(trainMatrix[i])
-    p1Vect=p1Num/p1Denom
-    p0Vect=p0Num/p0Denom
+    p1Vect=np.log(p1Num/p1Denom)
+    p0Vect=np.log(p0Num/p0Denom)
     return p0Vect,p1Vect,pAbusive
 
 def classifyNB(vec2Classify,p0Vec,p1Vec,pClass1):
@@ -88,11 +88,17 @@ def spamTest():
         trainClasses.append(classList[docIndex])
     p0V,p1V,pSpam=trainNB0(np.array(trainMat),np.array(trainClasses))
     errorCount=0
+    for docIndex in trainingSet:
+        wordVector=setOfWrods2Vec(vocabList,docList[docIndex])
+        if classifyNB(np.array(wordVector),p0V,p1V,pSpam)!=classList[docIndex]:
+            errorCount+=1
+    print('the training set error rate is: ',float(errorCount)/len(trainingSet))
+    errorCount=0
     for docIndex in testSet:
         wordVector=setOfWrods2Vec(vocabList,docList[docIndex])
         if classifyNB(np.array(wordVector),p0V,p1V,pSpam)!=classList[docIndex]:
             errorCount+=1
-    print('the error rate is: ',float(errorCount)/len(testSet))
+    print('the testing set error rate is: ',float(errorCount)/len(testSet))
     return float(errorCount)/len(testSet)
 
 def returndata():
